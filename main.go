@@ -24,21 +24,46 @@ type Products []struct {
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		password := r.URL.Query().Get("password")
 
-		file_id, err := strconv.Atoi(r.URL.Query().Get("file_id"))
+		var min, max float64
+		var err_min, err_max error
 
-		index, err_i := strconv.Atoi(r.URL.Query().Get("index"))
-
-		if password == "pigna" {
-			if err != nil && err_i != nil {
-				fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the file_id and index </h1>")
+		if r.URL.Path == "/product" {
+			if r.URL.Query().Has("min_rating") {
+				min, err_min = strconv.ParseFloat(r.URL.Query().Get("min_rating"), 64)
 			} else {
-				Print_file(file_id, index, w)
+				min = 0
+			}
+
+			if r.URL.Query().Has("max_rating") {
+				max, err_max = strconv.ParseFloat(r.URL.Query().Get("min_rating"), 64)
+			} else {
+				max = 5
+			}
+
+			if err_min != nil || err_max != nil {
+				fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the ratings </h1>")
+			} else {
+				list_product(min, max, w)
 			}
 		} else {
-			fmt.Fprintf(w, "<h1 style='text-align: center'> Wrong password</h1>")
+			password := r.URL.Query().Get("password")
+
+			file_id, err := strconv.Atoi(r.URL.Query().Get("file_id"))
+
+			index, err_i := strconv.Atoi(r.URL.Query().Get("index"))
+
+			if password == "pigna" {
+				if err != nil && err_i != nil {
+					fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the file_id and index </h1>")
+				} else {
+					Print_file(file_id, index, w)
+				}
+			} else {
+				fmt.Fprintf(w, "<h1 style='text-align: center'> Wrong password</h1>")
+			}
 		}
+
 	})
 
 	http.ListenAndServe(":8080", nil)
@@ -84,4 +109,34 @@ func Print_file(file_id int, index int, w http.ResponseWriter) {
 	} else {
 		fmt.Fprintf(w, "<h1 style='text-align: center'> There's an error with the file_id and index </h1>")
 	}
+}
+
+func list_product(min float64, max float64, w http.ResponseWriter) {
+
+	if min > max {
+		fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the ratings </h1>")
+	} else {
+		for i := 1; i < 4; i++ {
+			path := "test-files/test-" + strconv.Itoa(i) + ".json"
+			file, err_file := os.ReadFile(path)
+
+			if err_file != nil {
+				fmt.Fprintf(w, "<h1 style='text-align: center>Unable to load the file</h1>")
+			} else {
+				var product Products
+				err_file = json.Unmarshal(file, &product)
+				if err_file != nil {
+					fmt.Fprintf(w, "<p>%s</p>", err_file)
+				} else {
+					for j := 0; j < len(product); j++ {
+						if product[j].Rating > min && product[j].Rating < max {
+							fmt.Fprintf(w, "<p>%s</p>", product[j].Title)
+						}
+					}
+				}
+			}
+		}
+
+	}
+
 }
