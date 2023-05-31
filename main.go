@@ -24,44 +24,45 @@ type Products []struct {
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		password := r.URL.Query().Get("password")
+
+		file_id, err := strconv.Atoi(r.URL.Query().Get("file_id"))
+
+		index, err_i := strconv.Atoi(r.URL.Query().Get("index"))
+
+		if password == "pigna" {
+			if err != nil && err_i != nil {
+				fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the file_id and index </h1>")
+			} else {
+				Print_file(file_id, index, w)
+			}
+		} else {
+			fmt.Fprintf(w, "<h1 style='text-align: center'> Wrong password</h1>")
+		}
+
+	})
+
+	http.HandleFunc("/product", func(w http.ResponseWriter, r *http.Request) {
 
 		var min, max float64
 		var err_min, err_max error
 
-		if r.URL.Path == "/product" {
-			if r.URL.Query().Has("min_rating") {
-				min, err_min = strconv.ParseFloat(r.URL.Query().Get("min_rating"), 64)
-			} else {
-				min = 0
-			}
-
-			if r.URL.Query().Has("max_rating") {
-				max, err_max = strconv.ParseFloat(r.URL.Query().Get("min_rating"), 64)
-			} else {
-				max = 5
-			}
-
-			if err_min != nil || err_max != nil {
-				fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the ratings </h1>")
-			} else {
-				list_product(min, max, w)
-			}
+		if r.URL.Query().Has("min_rating") {
+			min, err_min = strconv.ParseFloat(r.URL.Query().Get("min_rating"), 64)
 		} else {
-			password := r.URL.Query().Get("password")
+			min = 0
+		}
 
-			file_id, err := strconv.Atoi(r.URL.Query().Get("file_id"))
+		if r.URL.Query().Has("max_rating") {
+			max, err_max = strconv.ParseFloat(r.URL.Query().Get("min_rating"), 64)
+		} else {
+			max = 5
+		}
 
-			index, err_i := strconv.Atoi(r.URL.Query().Get("index"))
-
-			if password == "pigna" {
-				if err != nil && err_i != nil {
-					fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the file_id and index </h1>")
-				} else {
-					Print_file(file_id, index, w)
-				}
-			} else {
-				fmt.Fprintf(w, "<h1 style='text-align: center'> Wrong password</h1>")
-			}
+		if err_min != nil || err_max != nil {
+			fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the ratings </h1>")
+		} else {
+			list_product(min, max, w)
 		}
 
 	})
