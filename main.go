@@ -24,6 +24,10 @@ type Products []struct {
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+    		w.Header().Set("Access-Control-Request-Headers", "*")
+		
 		password := r.URL.Query().Get("password")
 
 		file_id, err := strconv.Atoi(r.URL.Query().Get("file_id"))
@@ -43,6 +47,9 @@ func main() {
 	})
 
 	http.HandleFunc("/product", func(w http.ResponseWriter, r *http.Request) {
+		
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+    		w.Header().Set("Access-Control-Request-Headers", "*")
 
 		var min, max float64
 		var err_min, err_max error
@@ -83,7 +90,7 @@ func Print_file(file_id int, index int, w http.ResponseWriter) {
 		file, err_file := os.ReadFile(path)
 
 		if err_file != nil {
-			fmt.Fprintf(w, "<h1 style='text-align: center>Unable to load the file</h1>")
+			fmt.Fprintf(w, "<h1 style='text-align: center'>Unable to load the file</h1>")
 		} else {
 
 			var product Products
@@ -122,7 +129,7 @@ func list_product(min float64, max float64, w http.ResponseWriter) {
 			file, err_file := os.ReadFile(path)
 
 			if err_file != nil {
-				fmt.Fprintf(w, "<h1 style='text-align: center>Unable to load the file</h1>")
+				fmt.Fprintf(w, "<h1 style='text-align: center'>Unable to load the file</h1>")
 			} else {
 				var product Products
 				err_file = json.Unmarshal(file, &product)
