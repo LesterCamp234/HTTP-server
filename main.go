@@ -56,45 +56,52 @@ func main() {
 
 			accept := r.Header.Get("Accept")
 
-			w.Header().Set("Content-Type", accept)
+			if accept != "*/*"{
+				w.Header().Set("Content-Type", accept)
 
-			//0 = JSON | 1 = HTML
-			var print_style int
+				//0 = JSON | 1 = HTML
+				var print_style int
 
-			switch accept {
-			case "text/html":
-				print_style = 1
-			case "application/json":
-				print_style = 0
-			}
+				switch accept {
+				case "text/html":
+					print_style = 1
+				case "application/json":
+					print_style = 0
+				}
 
-			password := r.URL.Query().Get("password")
+				password := r.URL.Query().Get("password")
 
-			file_id, err := strconv.Atoi(r.URL.Query().Get("file_id"))
+				file_id, err := strconv.Atoi(r.URL.Query().Get("file_id"))
 
-			index, err_i := strconv.Atoi(r.URL.Query().Get("index"))
+				index, err_i := strconv.Atoi(r.URL.Query().Get("index"))
 
-			if password == "pigna" {
-				if err != nil && err_i != nil {
-					if print_style == 1 {
-						fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the file_id and index </h1>")
+				if password == "pigna" {
+					if err != nil && err_i != nil {
+						if print_style == 1 {
+							fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the file_id and index </h1>")
+						} else {
+							err, _ := json.Marshal(Error{Error: "Invalid file_id and index"})
+							fmt.Fprintf(w, "%s", err)
+
+						}
+
 					} else {
-						err, _ := json.Marshal(Error{Error: "Invalid file_id and index"})
-						fmt.Fprintf(w, "%s", err)
-
+						Print_file(file_id, index, w, print_style)
 					}
-
 				} else {
-					Print_file(file_id, index, w, print_style)
+					if print_style == 1 {
+						fmt.Fprintf(w, "<h1 style='text-align: center'> Wrong password</h1>")
+					} else {
+						err, _ := json.Marshal(Error{Error: "Wrong password"})
+						fmt.Fprintf(w, "%s", err)
+					}
 				}
 			} else {
-				if print_style == 1 {
-					fmt.Fprintf(w, "<h1 style='text-align: center'> Wrong password</h1>")
-				} else {
-					err, _ := json.Marshal(Error{Error: "Wrong password"})
-					fmt.Fprintf(w, "%s", err)
-				}
+				w.Header().Set("Content-Type", "text/plain")
+				fmt.Fprintf(w, "Unsupported mime type in 'Accept' header")
 			}
+
+			
 		} else {
 			w.Header().Set("Content-Type", "text/plain")
 			fmt.Fprintf(w, "HTTP 406 - Not Acceptable")
@@ -116,41 +123,47 @@ func main() {
 
 			accept := r.Header.Get("Accept")
 
-			w.Header().Set("Content-Type", accept)
+			if accept != "*/*"{
+				w.Header().Set("Content-Type", accept)
 
-			//0 = JSON | 1 = HTML
-			var print_style int
+				//0 = JSON | 1 = HTML
+				var print_style int
 
-			switch accept {
-			case "text/html":
-				print_style = 1
-			case "application/json":
-				print_style = 0
-			}
-
-			if r.URL.Query().Has("min_rating") {
-				min, err_min = strconv.ParseFloat(r.URL.Query().Get("min_rating"), 64)
-			} else {
-				min = 0
-			}
-
-			if r.URL.Query().Has("max_rating") {
-				max, err_max = strconv.ParseFloat(r.URL.Query().Get("max_rating"), 64)
-			} else {
-				max = 5
-			}
-
-			if err_min != nil || err_max != nil {
-				if print_style == 1 {
-					fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the ratings </h1>")
-				} else {
-					err, _ := json.Marshal(Error{Error: "Invalid ratings "})
-					fmt.Fprintf(w, "%s", err)
+				switch accept {
+				case "text/html":
+					print_style = 1
+				case "application/json":
+					print_style = 0
 				}
 
+				if r.URL.Query().Has("min_rating") {
+					min, err_min = strconv.ParseFloat(r.URL.Query().Get("min_rating"), 64)
+				} else {
+					min = 0
+				}
+
+				if r.URL.Query().Has("max_rating") {
+					max, err_max = strconv.ParseFloat(r.URL.Query().Get("max_rating"), 64)
+				} else {
+					max = 5
+				}
+
+				if err_min != nil || err_max != nil {
+					if print_style == 1 {
+						fmt.Fprintf(w, "<h1 style='text-align: center'> There is an error with the ratings </h1>")
+					} else {
+						err, _ := json.Marshal(Error{Error: "Invalid ratings "})
+						fmt.Fprintf(w, "%s", err)
+					}
+
+				} else {
+					list_product(min, max, w, print_style)
+				}
 			} else {
-				list_product(min, max, w, print_style)
+				w.Header().Set("Content-Type", "text/plain")
+				fmt.Fprintf(w, "Unsupported mime type in 'Accept' header")
 			}
+			
 		} else {
 			w.Header().Set("Content-Type", "text/plain")
 			fmt.Fprintf(w, "HTTP 406 - Not Acceptable")
